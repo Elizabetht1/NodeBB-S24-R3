@@ -21,10 +21,11 @@ const sockets = require('../socket.io');
 const authenticationController = module.exports;
 
 async function registerAndLoginUser(req, res, userData) {
+    console.log("In registerAndLoginUser \n");
     if (!userData.hasOwnProperty('email')) {
         userData.updateEmail = true;
     }
-
+    
     const data = await plugins.hooks.fire('filter:register.interstitial', {
         req,
         userData,
@@ -74,10 +75,13 @@ async function registerAndLoginUser(req, res, userData) {
 authenticationController.register = async function (req, res) {
     const registrationType = meta.config.registrationType || 'normal';
 
+
     if (registrationType === 'disabled') {
         return res.sendStatus(403);
     }
 
+    console.log("In register function, user req \n");
+    // console.log(req)
     const userData = req.body;
     try {
         if (userData.token || registrationType === 'invite-only' || registrationType === 'admin-invite-only') {
@@ -89,6 +93,7 @@ authenticationController.register = async function (req, res) {
             userData.username.length < meta.config.minimumUsernameLength ||
             slugify(userData.username).length < meta.config.minimumUsernameLength
         ) {
+            console.log("username too short");
             throw new Error('[[error:username-too-short]]');
         }
 
@@ -122,11 +127,13 @@ authenticationController.register = async function (req, res) {
             res.json(data);
         }
     } catch (err) {
+        console.log(err.message);
         helpers.noScriptErrors(req, res, err.message, 400);
     }
 };
 
 async function addToApprovalQueue(req, userData) {
+    console.log("addToApprovalQueue\n")
     userData.ip = req.ip;
     await user.addToApprovalQueue(userData);
     let message = '[[register:registration-added-to-queue]]';
@@ -143,6 +150,7 @@ async function addToApprovalQueue(req, userData) {
 }
 
 authenticationController.registerComplete = async function (req, res) {
+    console.log("registerComplete\n")
     try {
         // For the interstitials that respond, execute the callback with the form body
         const data = await plugins.hooks.fire('filter:register.interstitial', {
@@ -238,6 +246,7 @@ authenticationController.registerAbort = function (req, res) {
 };
 
 authenticationController.login = async (req, res, next) => {
+    console.log("login\n");
     let { strategy } = await plugins.hooks.fire('filter:login.override', { req, strategy: 'local' });
     if (!passport._strategy(strategy)) {
         winston.error(`[auth/override] Requested login strategy "${strategy}" not found, reverting back to local login strategy.`);

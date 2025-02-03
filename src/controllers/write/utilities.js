@@ -22,10 +22,12 @@ Utilities.ping.post = (req, res) => {
 
 Utilities.login = (req, res) => {
     res.locals.redirectAfterLogin = async (req, res) => {
+        console.log("redirect after logging in r \n");
         const userData = (await user.getUsers([req.uid], req.uid)).pop();
         helpers.formatApiResponse(200, res, userData);
     };
     res.locals.noScriptErrors = (req, res, err, statusCode) => {
+        console.log("noScriptErrors \n");
         helpers.formatApiResponse(statusCode, res, new Error(err));
     };
 
